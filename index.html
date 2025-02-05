@@ -49,32 +49,30 @@
 			
 	}
 	
-	function GetDogTimeout() {
-		setTimeout(function(){
-			fetch( uri, initDetails )
-				.then( response =>
+	setTimeout(function(){
+		fetch( uri, initDetails )
+			.then( response =>
+			{
+				if ( response.status !== 200 )
 				{
-					if ( response.status !== 200 )
-					{
-						console.log( 'Looks like there was a problem. Status Code: ' +
-							response.status );
-						return;
-					}
-
-					console.log( response.headers.get( "Content-Type" ) );
-					return response.json();
+					console.log( 'Looks like there was a problem. Status Code: ' +
+						response.status );
+					return;
 				}
-				)
-				.then( myJson =>
-				{
-					console.log( JSON.stringify( myJson ) );
-				} )
-				.catch( err =>
-				{
-					console.log( 'Fetch Error :-S', err );
-				} );
-		}, 3000
-	}();
+
+				console.log( response.headers.get( "Content-Type" ) );
+				return response.json();
+			}
+			)
+			.then( myJson =>
+			{
+				console.log( JSON.stringify( myJson ) );
+			} )
+			.catch( err =>
+			{
+				console.log( 'Fetch Error :-S', err );
+			} );
+	}, 3000)
 
 
 </script>
@@ -97,9 +95,6 @@ is a link to another nifty site
 	<button onclick="GetDogFacts()">Dog Facts Test (Long Processing Time due to long JS task)</button>
 </div>
 
-<div>
-	<button onclick="GetDogTimeout()">Dog Facts Test (SetTimeout)</button>
-</div>
 
 <HR>
 
