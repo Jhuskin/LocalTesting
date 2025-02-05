@@ -1,0 +1,78 @@
+<HTML>
+
+<HEAD>
+
+<TITLE>Your Title Here</TITLE>
+<script type="text/javascript" src="https://js-cdn.dynatrace.com/jstag/147f84b2bdc/bf44827rpq/4f33eafdbb2d8273_complete.js" crossorigin="anonymous"></script>
+
+
+<script>
+
+	const uri = 'https://dogapi.dog/api/v2/facts';
+	const initDetails = {
+		method: 'get',
+		headers: {
+			"Content-Type": "application/json; charset=utf-8",
+			"Timing-Allow-Origin": "*"
+		},
+		mode: "cors"
+	}
+
+	function GetDogFacts() {
+
+		fetch( uri, initDetails )
+			.then( response =>
+			{
+				if ( response.status !== 200 )
+				{
+					console.log( 'Looks like there was a problem. Status Code: ' +
+						response.status );
+					return;
+				}
+
+				console.log( response.headers.get( "Content-Type" ) );
+				return response.json();
+			}
+			)
+			.then( myJson =>
+			{
+				console.log( JSON.stringify( myJson ) );
+			} )
+			.catch( err =>
+			{
+				console.log( 'Fetch Error :-S', err );
+			} );
+			
+		//Imagine this is other JS unloading, executing, etc.
+		for(i=0; i<1000000000; i++){
+			i+=1
+		}
+			
+	}
+
+
+</script>
+
+</HEAD>
+
+<BODY BGCOLOR="FFFFFF">
+
+<!-- <CENTER><IMG SRC="clouds.jpg" ALIGN="BOTTOM"> </CENTER> -->
+
+<HR>
+
+<a href="http://www.google.com">Link Name</a>
+
+is a link to another nifty site
+
+<H1> Header</H1>
+
+<div>
+	<button onclick="GetDogFacts()">Dog Facts Test</button>
+</div>
+
+<HR>
+
+</BODY>
+
+</HTML>
