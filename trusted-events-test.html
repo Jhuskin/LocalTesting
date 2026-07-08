@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trusted Events Test</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      padding: 4.75rem 1.5rem 3rem;
+    }
+
+    /* ── Site navigation ─────────────────────────── */
+    .site-nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 999;
+      background: #1a1a2e;
+      border-bottom: 1px solid #2a2a4a;
+    }
+    .site-nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 2.75rem;
+      gap: 1rem;
+    }
+    .site-nav-logo { font-size: 0.82rem; font-weight: 700; color: #7dd3fc; white-space: nowrap; letter-spacing: 0.02em; }
+    .site-nav-links { display: flex; align-items: center; gap: 0.15rem; flex-wrap: wrap; }
+    .nav-link {
+      padding: 0.28rem 0.65rem;
+      font-size: 0.78rem;
+      font-family: inherit;
+      color: #94a3b8;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: color 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+    .nav-link:hover  { color: #e2e8f0; background: rgba(255,255,255,0.07); }
+    .nav-link.active { color: #7dd3fc; background: rgba(125,211,252,0.12); font-weight: 600; }
+
+    /* ── Page header ─────────────────────────────── */
+    .page-header {
+      max-width: 960px;
+      margin: 0 auto 1.25rem;
+    }
+
+    .page-header h1 {
+      font-size: 1.6rem;
+      color: #1a1a2e;
+      margin-bottom: 0.4rem;
+    }
+
+    .page-header p {
+      font-size: 0.88rem;
+      color: #64748b;
+      line-height: 1.6;
+      max-width: 680px;
+    }
+
+    .page-header code {
+      background: #e2e8f0;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: "Consolas", monospace;
+      font-size: 0.82rem;
+      color: #0f172a;
+    }
+
+    /* ── Legend ──────────────────────────────────── */
+    .legend {
+      max-width: 960px;
+      margin: 0 auto 1.75rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.3rem 0.75rem;
+      border-radius: 6px;
+    }
+
+    .legend-item.trusted   { background: #052e16; color: #4ade80; }
+    .legend-item.untrusted { background: #450a0a; color: #f87171; }
+    .legend-item.progset   { background: #1c1917; color: #fb923c; }
+
+    /* ── Test rows ───────────────────────────────── */
+    .test-rows {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .test-row {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 1.25rem;
+      align-items: stretch;
+    }
+
+    @media (max-width: 700px) {
+      .test-row { grid-template-columns: 1fr; }
+    }
+
+    /* ── Element card ────────────────────────────── */
+    .element-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.25rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .element-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #475569;
+    }
+
+    .element-num {
+      background: #1a1a2e;
+      color: #7dd3fc;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 0.7rem;
+    }
+
+    .main-input {
+      padding: 0.6rem 0.75rem;
+      border: 2px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .main-input:focus { border-color: #0f4c81; }
+
+    .main-btn {
+      padding: 0.6rem 1rem;
+      background: #0f4c81;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .main-btn:hover { background: #0d3f6c; }
+
+    .main-select {
+      padding: 0.6rem 0.75rem;
+      border: 2px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      width: 100%;
+      background: #fff;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .main-select:focus { border-color: #0f4c81; }
+
+    /* ── Simulate bar ────────────────────────────── */
+    .sim-bar {
+      border-top: 1px solid #f1f5f9;
+      padding-top: 0.75rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .sim-bar-label {
+      font-size: 0.72rem;
+      color: #94a3b8;
+      flex-basis: 100%;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .sim-btn {
+      padding: 0.3rem 0.75rem;
+      border: 1.5px solid #d1d5db;
+      background: #f8fafc;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-family: inherit;
+      cursor: pointer;
+      color: #475569;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .sim-btn:hover { border-color: #f87171; background: #fff5f5; color: #dc2626; }
+
+    /* ── Debug panel ─────────────────────────────── */
+    .debug-panel {
+      background: #0d1117;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+
+    .debug-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 0.9rem;
+      background: #161b22;
+      border-bottom: 1px solid #21262d;
+    }
+
+    .debug-panel-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #7dd3fc;
+      font-family: "Consolas", monospace;
+    }
+
+    .clear-btn {
+      padding: 0.18rem 0.5rem;
+      background: transparent;
+      border: 1px solid #30363d;
+      border-radius: 4px;
+      color: #64748b;
+      font-size: 0.7rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .clear-btn:hover { color: #94a3b8; border-color: #4b5563; }
+
+    /* Accepted state */
+    .accepted-state {
+      display: flex;
+      align-items: baseline;
+      gap: 0.6rem;
+      padding: 0.55rem 0.9rem;
+      border-bottom: 1px solid #21262d;
+      background: #0d1117;
+    }
+
+    .accepted-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #4b5563;
+      white-space: nowrap;
+      font-family: "Consolas", monospace;
+    }
+
+    .accepted-value {
+      font-size: 0.82rem;
+      font-family: "Consolas", monospace;
+      color: #94a3b8;
+      word-break: break-all;
+    }
+
+    .accepted-value.has-value { color: #4ade80; }
+
+    /* Log */
+    .debug-log {
+      flex: 1;
+      min-height: 160px;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 0.4rem 0;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 0.73rem;
+    }
+
+    .debug-log::-webkit-scrollbar { width: 4px; }
+    .debug-log::-webkit-scrollbar-track { background: transparent; }
+    .debug-log::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+
+    .log-empty {
+      padding: 0.6rem 0.9rem;
+      color: #4b5563;
+      font-family: "Consolas", monospace;
+      font-size: 0.73rem;
+      font-style: italic;
+    }
+
+    .log-entry {
+      display: grid;
+      grid-template-columns: 5.5rem 1.5rem 5.5rem 1fr;
+      gap: 0 0.5rem;
+      padding: 0.22rem 0.9rem;
+      line-height: 1.4;
+      border-bottom: 1px solid #161b22;
+    }
+
+    .log-entry:last-child { border-bottom: none; }
+    .log-ts   { color: #4b5563; }
+    .log-icon { text-align: center; }
+    .log-type { }
+    .log-detail { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #94a3b8; }
+
+    .log-entry.trusted   { background: rgba(74,222,128,0.04); }
+    .log-entry.trusted   .log-icon { color: #4ade80; }
+    .log-entry.trusted   .log-type { color: #4ade80; }
+
+    .log-entry.untrusted { background: rgba(248,113,113,0.04); }
+    .log-entry.untrusted .log-icon { color: #f87171; }
+    .log-entry.untrusted .log-type { color: #f87171; }
+
+    .log-entry.progset   { background: rgba(251,146,60,0.04); }
+    .log-entry.progset   .log-icon { color: #fb923c; }
+    .log-entry.progset   .log-type { color: #fb923c; }
+
+    /* ── Output bar ──────────────────────────────── */
+    .output-wrapper {
+      max-width: 960px;
+      margin: 2rem auto 0;
+    }
+
+    .output-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #999;
+      margin-bottom: 0.4rem;
+    }
+
+    .output-bar {
+      background: #1a1a2e;
+      color: #7dd3fc;
+      border-radius: 8px;
+      padding: 0.85rem 1.25rem;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 0.95rem;
+      min-height: 3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .output-bar::before { content: "▶"; color: #4ade80; flex-shrink: 0; }
+  </style>
+  <script type="text/javascript" src="https://js-cdn.dynatrace.com/jstag/147f84b2bdc/bf44827rpq/4f4ae6f803553cd6_complete.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <nav class="site-nav">
+    <div class="site-nav-inner">
+      <span class="site-nav-logo">&#129514; Test Pages</span>
+      <div class="site-nav-links">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="shadow-dom-test.html" class="nav-link">Shadow DOM</a>
+        <a href="iframe-test.html" class="nav-link">Iframes</a>
+        <a href="dynamic-selector-test.html" class="nav-link">Dynamic Selectors</a>
+        <a href="date-picker-test.html" class="nav-link">Date Picker</a>
+        <a href="login-test.html" class="nav-link">Login</a>
+        <a href="trusted-events-test.html" class="nav-link active">Trusted Events</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h1>Trusted Events Test</h1>
+    <p>
+      All event listeners on this page gate on <code>event.isTrusted === true</code>.
+      Events dispatched via JavaScript (<code>dispatchEvent</code>, <code>element.click()</code>, etc.)
+      receive <code>isTrusted: false</code> and are <strong>rejected</strong>.
+      Only real user gestures — or automation tools that inject at the OS/driver level — produce trusted events.
+    </p>
+  </div>
+
+  <div class="legend">
+    <span class="legend-item trusted">&#10003; Trusted — accepted</span>
+    <span class="legend-item untrusted">&#10007; Untrusted — rejected (dispatched event)</span>
+    <span class="legend-item progset">&#9650; Programmatic — value set directly (no event)</span>
+  </div>
+
+  <div class="test-rows">
+
+    <!-- ── Row 1: Text input ───────────────────── -->
+    <div class="test-row">
+      <div class="element-card">
+        <div class="element-label">
+          <span class="element-num">01</span>
+          Text Input
+        </div>
+        <input type="text" id="test-input" class="main-input" placeholder="Type something here…" autocomplete="off" />
+        <div class="sim-bar">
+          <span class="sim-bar-label">Simulate programmatic interaction</span>
+          <button class="sim-btn" id="sim-input-set">Set value (no event)</button>
+          <button class="sim-btn" id="sim-input-dispatch">Set value + dispatch input</button>
+        </div>
+      </div>
+      <div class="debug-panel">
+        <div class="debug-panel-header">
+          <span class="debug-panel-title">// input event log</span>
+          <button class="clear-btn" id="clear-input">Clear</button>
+        </div>
+        <div class="accepted-state">
+          <span class="accepted-label">Accepted&nbsp;value</span>
+          <span class="accepted-value" id="input-accepted-val">—</span>
+        </div>
+        <div class="debug-log" id="input-log">
+          <div class="log-empty">No events yet — interact with the input above</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Row 2: Button ──────────────────────── -->
+    <div class="test-row">
+      <div class="element-card">
+        <div class="element-label">
+          <span class="element-num">02</span>
+          Button
+        </div>
+        <button id="test-btn" class="main-btn">Click Me</button>
+        <div class="sim-bar">
+          <span class="sim-bar-label">Simulate programmatic interaction</span>
+          <button class="sim-btn" id="sim-btn-click">Dispatch click event</button>
+          <button class="sim-btn" id="sim-btn-js">Call .click() method</button>
+        </div>
+      </div>
+      <div class="debug-panel">
+        <div class="debug-panel-header">
+          <span class="debug-panel-title">// button event log</span>
+          <button class="clear-btn" id="clear-btn">Clear</button>
+        </div>
+        <div class="accepted-state">
+          <span class="accepted-label">Last&nbsp;accepted&nbsp;click</span>
+          <span class="accepted-value" id="btn-accepted-val">—</span>
+        </div>
+        <div class="debug-log" id="btn-log">
+          <div class="log-empty">No events yet — click the button above</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Row 3: Select ──────────────────────── -->
+    <div class="test-row">
+      <div class="element-card">
+        <div class="element-label">
+          <span class="element-num">03</span>
+          Dropdown / Select
+        </div>
+        <select id="test-select" class="main-select">
+          <option value="">— Select a day —</option>
+          <option value="Monday">Monday</option>
+          <option value="Tuesday">Tuesday</option>
+          <option value="Wednesday">Wednesday</option>
+          <option value="Thursday">Thursday</option>
+          <option value="Friday">Friday</option>
+          <option value="Saturday">Saturday</option>
+          <option value="Sunday">Sunday</option>
+        </select>
+        <div class="sim-bar">
+          <span class="sim-bar-label">Simulate programmatic interaction</span>
+          <button class="sim-btn" id="sim-sel-set">Set value (no event)</button>
+          <button class="sim-btn" id="sim-sel-dispatch">Set value + dispatch change</button>
+        </div>
+      </div>
+      <div class="debug-panel">
+        <div class="debug-panel-header">
+          <span class="debug-panel-title">// select event log</span>
+          <button class="clear-btn" id="clear-sel">Clear</button>
+        </div>
+        <div class="accepted-state">
+          <span class="accepted-label">Accepted&nbsp;selection</span>
+          <span class="accepted-value" id="sel-accepted-val">—</span>
+        </div>
+        <div class="debug-log" id="sel-log">
+          <div class="log-empty">No events yet — use the dropdown above</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="output-wrapper">
+    <div class="output-label">Last Accepted (Trusted) Interaction</div>
+    <div class="output-bar">
+      <span id="output-text">Waiting for trusted interaction…</span>
+    </div>
+  </div>
+
+  <script>
+    /* ── Helpers ───────────────────────────────────── */
+    function ts() {
+      var d = new Date();
+      return pad2(d.getHours())   + ':' +
+             pad2(d.getMinutes()) + ':' +
+             pad2(d.getSeconds()) + '.' +
+             pad3(d.getMilliseconds());
+    }
+
+    function pad2(n) { return n < 10  ? '0' + n  : '' + n; }
+    function pad3(n) { return n < 100 ? (n < 10 ? '00' + n : '0' + n) : '' + n; }
+
+    function setOutput(msg) {
+      document.getElementById('output-text').textContent = msg;
+    }
+
+    /* ── Logging ───────────────────────────────────── */
+    function appendLog(logId, kind, eventType, detail) {
+      // kind: 'trusted' | 'untrusted' | 'progset'
+      var log = document.getElementById(logId);
+
+      // Remove placeholder
+      var empty = log.querySelector('.log-empty');
+      if (empty) empty.remove();
+
+      var icons = { trusted: '✓', untrusted: '✗', progset: '▲' };
+
+      var entry = document.createElement('div');
+      entry.className = 'log-entry ' + kind;
+      entry.innerHTML =
+        '<span class="log-ts">'     + ts()           + '</span>' +
+        '<span class="log-icon">'   + icons[kind]    + '</span>' +
+        '<span class="log-type">'   + eventType      + '</span>' +
+        '<span class="log-detail">' + detail         + '</span>';
+
+      log.appendChild(entry);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function setAccepted(valElId, value) {
+      var el = document.getElementById(valElId);
+      el.textContent = value;
+      el.classList.toggle('has-value', value !== '—');
+    }
+
+    /* ── Guard: prevents our own setter writes from re-triggering ── */
+    var internalSet = { input: false, select: false };
+
+    /* ── Intercept programmatic value assignments ── */
+    function interceptValueSetter(elId, fieldKey, logId) {
+      var el    = document.getElementById(elId);
+      var proto = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value') ||
+                  Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+      var origGet = proto.get;
+      var origSet = proto.set;
+
+      Object.defineProperty(el, 'value', {
+        get: function() { return origGet.call(this); },
+        set: function(val) {
+          origSet.call(this, val);
+          if (!internalSet[fieldKey]) {
+            appendLog(logId, 'progset', 'value setter', '"' + val + '" — set directly, no event');
+          }
+        },
+        configurable: true
+      });
+    }
+
+    /* ── INPUT element ─────────────────────────────── */
+    var inputEl = document.getElementById('test-input');
+
+    interceptValueSetter('test-input', 'input', 'input-log');
+
+    // keydown — shows individual key presses
+    inputEl.addEventListener('keydown', function(e) {
+      var kind   = e.isTrusted ? 'trusted' : 'untrusted';
+      var detail = '"' + (e.key.length === 1 ? e.key : e.key) + '"';
+      appendLog('input-log', kind, 'keydown', 'key ' + detail);
+    });
+
+    // input — shows current value after each change
+    inputEl.addEventListener('input', function(e) {
+      var kind = e.isTrusted ? 'trusted' : 'untrusted';
+      appendLog('input-log', kind, 'input', '"' + e.target.value + '"');
+      if (e.isTrusted) {
+        setAccepted('input-accepted-val', '"' + e.target.value + '"');
+        setOutput('Input — typed: "' + e.target.value + '"');
+      }
+    });
+
+    // change — fires on blur / Enter
+    inputEl.addEventListener('change', function(e) {
+      var kind = e.isTrusted ? 'trusted' : 'untrusted';
+      appendLog('input-log', kind, 'change', '"' + e.target.value + '"');
+    });
+
+    /* ── BUTTON element ────────────────────────────── */
+    var btnEl = document.getElementById('test-btn');
+    var btnClickCount = 0;
+
+    ['mousedown', 'mouseup', 'click'].forEach(function(evType) {
+      btnEl.addEventListener(evType, function(e) {
+        var kind = e.isTrusted ? 'trusted' : 'untrusted';
+        var detail = evType === 'click' ? '(button)' : '(x:' + e.clientX + ' y:' + e.clientY + ')';
+        appendLog('btn-log', kind, evType, detail);
+        if (e.isTrusted && evType === 'click') {
+          btnClickCount++;
+          setAccepted('btn-accepted-val', 'click #' + btnClickCount + ' at ' + ts());
+          setOutput('Button — clicked (trusted)');
+        }
+      });
+    });
+
+    /* ── SELECT element ────────────────────────────── */
+    var selEl = document.getElementById('test-select');
+
+    interceptValueSetter('test-select', 'select', 'sel-log');
+
+    selEl.addEventListener('change', function(e) {
+      var kind = e.isTrusted ? 'trusted' : 'untrusted';
+      var val  = e.target.value || '(none)';
+      appendLog('sel-log', kind, 'change', '"' + val + '"');
+      if (e.isTrusted) {
+        setAccepted('sel-accepted-val', '"' + val + '"');
+        setOutput('Select — chosen: "' + val + '" (trusted)');
+      }
+    });
+
+    selEl.addEventListener('click', function(e) {
+      var kind = e.isTrusted ? 'trusted' : 'untrusted';
+      appendLog('sel-log', kind, 'click', '(dropdown opened/closed)');
+    });
+
+    /* ── Clear buttons ─────────────────────────────── */
+    document.getElementById('clear-input').addEventListener('click', function() {
+      var log = document.getElementById('input-log');
+      log.innerHTML = '<div class="log-empty">Log cleared</div>';
+    });
+    document.getElementById('clear-btn').addEventListener('click', function() {
+      var log = document.getElementById('btn-log');
+      log.innerHTML = '<div class="log-empty">Log cleared</div>';
+    });
+    document.getElementById('clear-sel').addEventListener('click', function() {
+      var log = document.getElementById('sel-log');
+      log.innerHTML = '<div class="log-empty">Log cleared</div>';
+    });
+
+    /* ── Simulation buttons ────────────────────────── */
+
+    // Input: set value only (no event)
+    document.getElementById('sim-input-set').addEventListener('click', function() {
+      // This goes through our intercepted setter → logged as 'progset'
+      inputEl.value = 'Programmatic text';
+      // No event dispatched — the strict listener never fires
+    });
+
+    // Input: set value + dispatch untrusted input event
+    document.getElementById('sim-input-dispatch').addEventListener('click', function() {
+      internalSet.input = true;
+      inputEl.value = 'Programmatic text';
+      internalSet.input = false;
+      var evt = new InputEvent('input', { bubbles: true, cancelable: true });
+      inputEl.dispatchEvent(evt);
+      // isTrusted will be false → logged as untrusted, accepted value NOT updated
+    });
+
+    // Button: dispatch click event
+    document.getElementById('sim-btn-click').addEventListener('click', function() {
+      var evt = new MouseEvent('click', { bubbles: true, cancelable: true });
+      btnEl.dispatchEvent(evt);
+    });
+
+    // Button: call native .click() method
+    document.getElementById('sim-btn-js').addEventListener('click', function() {
+      btnEl.click();
+    });
+
+    // Select: set value only (no event)
+    document.getElementById('sim-sel-set').addEventListener('click', function() {
+      selEl.value = 'Wednesday';
+      // No event dispatched → only the setter interceptor logs it
+    });
+
+    // Select: set value + dispatch untrusted change event
+    document.getElementById('sim-sel-dispatch').addEventListener('click', function() {
+      internalSet.select = true;
+      selEl.value = 'Wednesday';
+      internalSet.select = false;
+      var evt = new Event('change', { bubbles: true });
+      selEl.dispatchEvent(evt);
+      // isTrusted false → rejected by listener
+    });
+  </script>
+
+</body>
+</html>

@@ -194,6 +194,7 @@
         <a href="dynamic-selector-test.html" class="nav-link">Dynamic Selectors</a>
         <a href="date-picker-test.html" class="nav-link">Date Picker</a>
         <a href="login-test.html" class="nav-link">Login</a>
+        <a href="trusted-events-test.html" class="nav-link">Trusted Events</a>
       </div>
     </div>
   </nav>
@@ -303,6 +304,28 @@
         </div>
         <div class="card-footer" style="color: #059669">
           <span>login-test.html</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      <a href="trusted-events-test.html" class="page-card">
+        <div class="card-accent" style="background: linear-gradient(90deg, #db2777, #7c3aed)"></div>
+        <div class="card-body">
+          <div class="card-icon">&#128274;</div>
+          <div class="card-title">Trusted Events</div>
+          <div class="card-desc">
+            Input, button, and select each gated behind strict <code>event.isTrusted === true</code> checks.
+            Programmatic dispatches are rejected; direct value-setter assignments are detected via property interception.
+            A live debug log per element shows trusted vs rejected events in real time.
+          </div>
+          <div class="card-tags">
+            <span class="tag">isTrusted</span>
+            <span class="tag">Event Gating</span>
+            <span class="tag">Setter Intercept</span>
+          </div>
+        </div>
+        <div class="card-footer" style="color: #db2777">
+          <span>trusted-events-test.html</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </div>
       </a>
