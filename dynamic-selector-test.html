@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dynamic Selector Test Page</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f0f2f5;
+      color: #333;
+      min-height: 100vh;
+      padding: 4.75rem 1rem 3rem;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.6rem;
+      color: #1a1a2e;
+      margin-bottom: 0.4rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #888;
+      margin-bottom: 1.25rem;
+    }
+
+    /* ── Regenerate bar ──────────────────────────── */
+    .regen-bar {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+
+    .regen-btn {
+      padding: 0.5rem 1.25rem;
+      background: #1a1a2e;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .regen-btn:hover { background: #2d2d4e; }
+
+    /* ── Section grid ────────────────────────────── */
+    .sections-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.25rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+
+    /* Flash when selectors regenerate */
+    @keyframes flash-border {
+      0%   { box-shadow: 0 0 0 3px rgba(99,102,241,0.6); }
+      100% { box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+    }
+
+    .card.flashing { animation: flash-border 0.5s ease-out; }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.6rem;
+    }
+
+    .card-title { font-size: 1rem; font-weight: 600; color: #1a1a2e; }
+
+    .badge {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 20px;
+    }
+
+    /* ── Controls (targeted by data-type, no class dependency) ── */
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      padding: 0.75rem 1rem;
+    }
+
+    [data-type="input"] {
+      padding: 0.5rem 0.7rem;
+      border: 2px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      width: 100%;
+      font-family: inherit;
+      transition: border-color 0.15s;
+    }
+
+    [data-type="input"]:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    [data-type="button"] {
+      padding: 0.5rem 1rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: filter 0.15s;
+    }
+
+    [data-type="button"]:hover  { filter: brightness(0.88); }
+    [data-type="button"]:active { filter: brightness(0.75); }
+
+    [data-type="select"] {
+      padding: 0.5rem 0.7rem;
+      border: 2px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      width: 100%;
+      background: #fff;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    [data-type="select"]:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    /* ── Output bar ──────────────────────────────── */
+    .output-wrapper {
+      max-width: 960px;
+      margin: 2rem auto 0;
+    }
+
+    .output-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #999;
+      margin-bottom: 0.4rem;
+    }
+
+    .output-bar {
+      background: #1a1a2e;
+      color: #7dd3fc;
+      border-radius: 8px;
+      padding: 0.85rem 1.25rem;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 0.95rem;
+      min-height: 3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .output-bar::before {
+      content: "▶";
+      color: #4ade80;
+      flex-shrink: 0;
+    }
+    /* ── Site navigation ──────────────────────────── */
+    .site-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 999;
+      background: #1a1a2e;
+      border-bottom: 1px solid #2a2a4a;
+    }
+    .site-nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 2.75rem;
+      gap: 1rem;
+    }
+    .site-nav-logo {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #7dd3fc;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
+    .site-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.15rem;
+      flex-wrap: wrap;
+    }
+    .nav-link {
+      padding: 0.28rem 0.65rem;
+      font-size: 0.78rem;
+      font-family: inherit;
+      color: #94a3b8;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: color 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+    .nav-link:hover  { color: #e2e8f0; background: rgba(255,255,255,0.07); }
+    .nav-link.active { color: #7dd3fc; background: rgba(125,211,252,0.12); font-weight: 600; }
+
+  </style>
+  <script type="text/javascript" src="https://js-cdn.dynatrace.com/jstag/147f84b2bdc/bf44827rpq/4f4ae6f803553cd6_complete.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <nav class="site-nav">
+    <div class="site-nav-inner">
+      <span class="site-nav-logo">&#129514; Test Pages</span>
+      <div class="site-nav-links">
+        <a href="shadow-dom-test.html" class="nav-link">Shadow DOM</a>
+        <a href="iframe-test.html" class="nav-link">Iframes</a>
+        <a href="dynamic-selector-test.html" class="nav-link active">Dynamic Selectors</a>
+        <a href="date-picker-test.html" class="nav-link">Date Picker</a>
+        <a href="login-test.html" class="nav-link">Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <h1>Dynamic Selector Test Page</h1>
+  <p class="subtitle">IDs and class names are randomly generated on every page load</p>
+
+  <div class="regen-bar">
+    <button class="regen-btn" onclick="regenerate()">&#8635; Regenerate Selectors</button>
+  </div>
+
+  <div class="sections-grid" id="grid"></div>
+
+  <div class="output-wrapper">
+    <div class="output-label">Last Interaction</div>
+    <div class="output-bar">
+      <span id="output-text">Waiting for interaction…</span>
+    </div>
+  </div>
+
+  <script>
+    const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+    const SECTIONS = [
+      { num: 1, accent: '#3b82f6', badgeBg: '#eff6ff' },
+      { num: 2, accent: '#7c3aed', badgeBg: '#f5f3ff' },
+      { num: 3, accent: '#dc2626', badgeBg: '#fef2f2' },
+      { num: 4, accent: '#ea580c', badgeBg: '#fff7ed' },
+      { num: 5, accent: '#059669', badgeBg: '#ecfdf5' },
+      { num: 6, accent: '#db2777', badgeBg: '#fdf2f8' },
+    ];
+
+    // Realistic-looking prefixes to blend into a real DOM
+    const PREFIXES = ['ui','ctrl','comp','blk','mod','fld','node','item','widget','elem','form','layer'];
+
+    function randStr(len) {
+      return Math.random().toString(36).slice(2, 2 + len);
+    }
+
+    function genId() {
+      return 'id-' + randStr(8);
+    }
+
+    function genClass() {
+      var prefix = PREFIXES[Math.floor(Math.random() * PREFIXES.length)];
+      return prefix + '__' + randStr(5);
+    }
+
+    function genClasses() {
+      var a = genClass(), b;
+      do { b = genClass(); } while (b === a);
+      return [a, b];
+    }
+
+    // Selector map: selectors[sectionNum] = { input, button, select }
+    var selectors = {};
+
+    function buildSelectors() {
+      SECTIONS.forEach(function(s) {
+        selectors[s.num] = {
+          input:  { id: genId(), classes: genClasses() },
+          button: { id: genId(), classes: genClasses() },
+          select: { id: genId(), classes: genClasses() },
+        };
+      });
+    }
+
+    function setOutput(msg) {
+      document.getElementById('output-text').textContent = msg;
+    }
+
+    /* ── Initial card build (runs once) ─────────── */
+    function buildCards() {
+      var grid = document.getElementById('grid');
+      var daysOpts = DAYS.map(function(d) {
+        return '<option value="' + d + '">' + d + '</option>';
+      }).join('');
+
+      SECTIONS.forEach(function(s) {
+        var sel = selectors[s.num];
+        var label = 'Section ' + s.num;
+
+        var card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.section = s.num;
+        card.style.setProperty('--accent', s.accent);
+
+        card.innerHTML =
+          '<div class="card-header" style="border-bottom:2px solid ' + s.accent + '">' +
+            '<span class="card-title">' + label + '</span>' +
+            '<span class="badge" style="background:' + s.badgeBg + ';color:' + s.accent + '">dynamic</span>' +
+          '</div>' +
+          '<div class="controls">' +
+            '<input type="text"' +
+              ' id="' + sel.input.id + '"' +
+              ' class="' + sel.input.classes.join(' ') + '"' +
+              ' data-section="' + s.num + '"' +
+              ' data-type="input"' +
+              ' placeholder="Type something..." />' +
+            '<button' +
+              ' id="' + sel.button.id + '"' +
+              ' class="' + sel.button.classes.join(' ') + '"' +
+              ' data-section="' + s.num + '"' +
+              ' data-type="button">Click Me</button>' +
+            '<select' +
+              ' id="' + sel.select.id + '"' +
+              ' class="' + sel.select.classes.join(' ') + '"' +
+              ' data-section="' + s.num + '"' +
+              ' data-type="select">' +
+              '<option value="">-- Select a day --</option>' +
+              daysOpts +
+            '</select>' +
+          '</div>';
+
+        // Wire events
+        var input  = card.querySelector('[data-type="input"]');
+        var button = card.querySelector('[data-type="button"]');
+        var select = card.querySelector('[data-type="select"]');
+
+        input.addEventListener('input', function() {
+          setOutput(label + ' - Input value: ' + input.value);
+        });
+        button.addEventListener('click', function() {
+          setOutput(label + ' - Button clicked');
+        });
+        select.addEventListener('change', function() {
+          if (select.value) setOutput(label + ' - Dropdown selected: ' + select.value);
+        });
+
+        grid.appendChild(card);
+      });
+    }
+
+    /* ── Regenerate: update IDs/classes in-place ─ */
+    function regenerate() {
+      buildSelectors();
+
+      SECTIONS.forEach(function(s) {
+        var sel = selectors[s.num];
+        var card = document.querySelector('.card[data-section="' + s.num + '"]');
+
+        var input  = card.querySelector('[data-type="input"]');
+        var button = card.querySelector('[data-type="button"]');
+        var select = card.querySelector('[data-type="select"]');
+
+        input.id        = sel.input.id;
+        input.className = sel.input.classes.join(' ');
+        button.id        = sel.button.id;
+        button.className = sel.button.classes.join(' ');
+        select.id        = sel.select.id;
+        select.className = sel.select.classes.join(' ');
+
+        // Brief flash to confirm change
+        card.classList.remove('flashing');
+        void card.offsetWidth; // reflow to restart animation
+        card.classList.add('flashing');
+        card.addEventListener('animationend', function() {
+          card.classList.remove('flashing');
+        }, { once: true });
+      });
+
+    }
+
+    /* ── Init ─────────────────────────────────────── */
+    buildSelectors();
+    buildCards();
+  </script>
+
+</body>
+</html>
