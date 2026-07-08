@@ -1,104 +1,314 @@
-<HTML>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Synthetic Scripting Test Pages</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-<HEAD>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      padding-top: 2.75rem;
+    }
 
-<TITLE>Your Title Here</TITLE>
-<script type="text/javascript" src="https://js-cdn.dynatrace.com/jstag/147f84b2bdc/bf44827rpq/14d8d97af611be4e_complete.js" crossorigin="anonymous"></script>
-	
-<script>
+    /* ── Site navigation ─────────────────────────── */
+    .site-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 999;
+      background: #1a1a2e;
+      border-bottom: 1px solid #2a2a4a;
+    }
+    .site-nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 2.75rem;
+      gap: 1rem;
+    }
+    .site-nav-logo {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #7dd3fc;
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
+    .site-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.15rem;
+      flex-wrap: wrap;
+    }
+    .nav-link {
+      padding: 0.28rem 0.65rem;
+      font-size: 0.78rem;
+      font-family: inherit;
+      color: #94a3b8;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: color 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+    .nav-link:hover  { color: #e2e8f0; background: rgba(255,255,255,0.07); }
+    .nav-link.active { color: #7dd3fc; background: rgba(125,211,252,0.12); font-weight: 600; }
 
-	const uri = 'https://dogapi.dog/api/v2/facts';
-	const initDetails = {
-		method: 'get',
-		headers: {
-			"Content-Type": "application/json; charset=utf-8",
-			"Timing-Allow-Origin": "*"
-		},
-		mode: "cors"
-	}
+    /* ── Hero ────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f2744 55%, #1a1a2e 100%);
+      color: #fff;
+      text-align: center;
+      padding: 4rem 1.5rem 5rem;
+    }
 
-	function GetDogFacts() {
-		fetch( uri, initDetails )
-			.then( response => {
-				if ( response.status !== 200 )
-				{
-					console.log( 'Looks like there was a problem. Status Code: ' +
-						response.status );
-					return;
-				}
+    .hero-icon {
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 1rem;
+    }
 
-				console.log( response.headers.get( "Content-Type" ) );
-				return response.json();
-			}
-			)
-			.then( myJson => {
-				console.log( JSON.stringify( myJson ) );
-			} )
-			.catch( err => {
-				console.log( 'Fetch Error :-S', err );
-			} );
-			
-		//Imagine this is other JS unloading, executing, etc.
-		for(i=0; i<1000000000; i++){
-			i+=1
-		}	
-	}
-	
-	function GetDogTimeout() {
-		setTimeout(function(){
-			fetch( uri, initDetails )
-				.then( response =>
-				{
-					if ( response.status !== 200 )
-					{
-						console.log( 'Looks like there was a problem. Status Code: ' +
-							response.status );
-						return;
-					}
-	
-					console.log( response.headers.get( "Content-Type" ) );
-					return response.json();
-				}
-				)
-				.then( myJson =>
-				{
-					console.log( JSON.stringify( myJson ) );
-				} )
-				.catch( err =>
-				{
-					console.log( 'Fetch Error :-S', err );
-				} );
-		}, 5000)
-	}
+    .hero h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.6rem;
+      color: #f1f5f9;
+    }
 
+    .hero p {
+      font-size: 1rem;
+      color: #94a3b8;
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
 
-</script>
+    /* ── Page wrapper ────────────────────────────── */
+    .page-wrapper {
+      max-width: 960px;
+      margin: -2.5rem auto 0;
+      padding: 0 1.5rem 4rem;
+    }
 
-</HEAD>
+    /* ── Grid ────────────────────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
 
-<BODY BGCOLOR="FFFFFF">
+    /* ── Page cards ──────────────────────────────── */
+    .page-card {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
 
-<!-- <CENTER><IMG SRC="clouds.jpg" ALIGN="BOTTOM"> </CENTER> -->
+    .page-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.13);
+    }
 
-<HR>
+    .card-accent {
+      height: 4px;
+    }
 
-<a href="http://www.google.com">Link Name</a>
+    .card-body {
+      padding: 1.4rem 1.5rem 1.5rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
 
-is a link to another nifty site
+    .card-icon {
+      font-size: 1.6rem;
+      margin-bottom: 0.2rem;
+    }
 
-<H1> Header</H1>
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
 
-<div>
-	<button onclick="GetDogFacts()">Dog Facts Test (Long Processing Time due to long JS task)</button>
-</div>
+    .card-desc {
+      font-size: 0.85rem;
+      color: #64748b;
+      line-height: 1.55;
+      flex: 1;
+    }
 
-<div>
-	<button onclick="GetDogTimeout()">SetTimeout</button>
-</div>
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.5rem;
+    }
 
+    .tag {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: #f1f5f9;
+      color: #475569;
+    }
 
-<HR>
+    .card-footer {
+      padding: 0.75rem 1.5rem;
+      border-top: 1px solid #f1f5f9;
+      font-size: 0.78rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
 
-</BODY>
+    .card-footer span { flex: 1; }
+    .card-footer svg { flex-shrink: 0; }
+  </style>
+  <script type="text/javascript" src="https://js-cdn.dynatrace.com/jstag/147f84b2bdc/bf44827rpq/4f4ae6f803553cd6_complete.js" crossorigin="anonymous"></script>
+</head>
+<body>
 
-</HTML>
+  <nav class="site-nav">
+    <div class="site-nav-inner">
+      <span class="site-nav-logo">&#129514; Test Pages</span>
+      <div class="site-nav-links">
+        <a href="shadow-dom-test.html" class="nav-link">Shadow DOM</a>
+        <a href="iframe-test.html" class="nav-link">Iframes</a>
+        <a href="dynamic-selector-test.html" class="nav-link">Dynamic Selectors</a>
+        <a href="date-picker-test.html" class="nav-link">Date Picker</a>
+        <a href="login-test.html" class="nav-link">Login</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <span class="hero-icon">&#129514;</span>
+    <h1>Synthetic Scripting Test Pages</h1>
+    <p>A collection of pages designed to test synthetic scripting scenarios across shadow DOM boundaries, nested iframes, dynamic selectors, and more.</p>
+  </div>
+
+  <div class="page-wrapper">
+    <div class="cards-grid">
+
+      <a href="shadow-dom-test.html" class="page-card">
+        <div class="card-accent" style="background: linear-gradient(90deg, #3b82f6, #7c3aed)"></div>
+        <div class="card-body">
+          <div class="card-icon">&#127962;</div>
+          <div class="card-title">Shadow DOM</div>
+          <div class="card-desc">
+            Six sections with 1–6 layers of nested shadow DOM. Each section contains an input, button, and day-of-week dropdown to test element interaction across shadow boundaries.
+          </div>
+          <div class="card-tags">
+            <span class="tag">Shadow DOM</span>
+            <span class="tag">Custom Elements</span>
+            <span class="tag">6 sections</span>
+          </div>
+        </div>
+        <div class="card-footer" style="color: #3b82f6">
+          <span>shadow-dom-test.html</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      <a href="iframe-test.html" class="page-card">
+        <div class="card-accent" style="background: linear-gradient(90deg, #7c3aed, #dc2626)"></div>
+        <div class="card-body">
+          <div class="card-icon">&#128247;</div>
+          <div class="card-title">Nested Iframes</div>
+          <div class="card-desc">
+            Six sections with 1–6 nested iframes built from <code>srcdoc</code> at runtime. Events bubble back to the top page via chained <code>postMessage</code> relay frames.
+          </div>
+          <div class="card-tags">
+            <span class="tag">Iframes</span>
+            <span class="tag">postMessage</span>
+            <span class="tag">6 sections</span>
+          </div>
+        </div>
+        <div class="card-footer" style="color: #7c3aed">
+          <span>iframe-test.html</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      <a href="dynamic-selector-test.html" class="page-card">
+        <div class="card-accent" style="background: linear-gradient(90deg, #dc2626, #ea580c)"></div>
+        <div class="card-body">
+          <div class="card-icon">&#127922;</div>
+          <div class="card-title">Dynamic Selectors</div>
+          <div class="card-desc">
+            All element IDs and class names are randomly generated on every page load. A regenerate button re-rolls all selectors in-place. Stable <code>data-type</code> and <code>data-section</code> attributes remain as anchors.
+          </div>
+          <div class="card-tags">
+            <span class="tag">Random IDs</span>
+            <span class="tag">Random Classes</span>
+            <span class="tag">6 sections</span>
+          </div>
+        </div>
+        <div class="card-footer" style="color: #dc2626">
+          <span>dynamic-selector-test.html</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      <a href="date-picker-test.html" class="page-card">
+        <div class="card-accent" style="background: linear-gradient(90deg, #ea580c, #059669)"></div>
+        <div class="card-body">
+          <div class="card-icon">&#9992;</div>
+          <div class="card-title">Date Picker</div>
+          <div class="card-desc">
+            An airline-style booking form with departure and return date fields. Supports typed input (dd/mm/yyyy with auto-formatting), a native calendar modal, cross-field validation, and programmatic change detection.
+          </div>
+          <div class="card-tags">
+            <span class="tag">Date Input</span>
+            <span class="tag">Calendar Modal</span>
+            <span class="tag">Validation</span>
+          </div>
+        </div>
+        <div class="card-footer" style="color: #ea580c">
+          <span>date-picker-test.html</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+      <a href="login-test.html" class="page-card">
+        <div class="card-accent" style="background: linear-gradient(90deg, #059669, #db2777)"></div>
+        <div class="card-body">
+          <div class="card-icon">&#128274;</div>
+          <div class="card-title">Login</div>
+          <div class="card-desc">
+            A login form that makes a real fetch request on submit regardless of credentials. The outcome (success or failure) is only determined after the API responds, simulating a genuine authentication round-trip.
+          </div>
+          <div class="card-tags">
+            <span class="tag">Form Submit</span>
+            <span class="tag">Fetch / API</span>
+            <span class="tag">Auth Flow</span>
+          </div>
+        </div>
+        <div class="card-footer" style="color: #059669">
+          <span>login-test.html</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+</body>
+</html>
