@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Selector Reasoning Test</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      padding: 4.75rem 1.5rem 3rem;
+    }
+
+    /* ── Site navigation ─────────────────────────── */
+    .site-nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 999;
+      background: #1a1a2e;
+      border-bottom: 1px solid #2a2a4a;
+    }
+    .site-nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 2.75rem;
+      gap: 1rem;
+    }
+    .site-nav-logo { font-size: 0.82rem; font-weight: 700; color: #7dd3fc; white-space: nowrap; letter-spacing: 0.02em; }
+    .site-nav-links { display: flex; align-items: center; gap: 0.15rem; flex-wrap: wrap; }
+    .nav-link {
+      padding: 0.28rem 0.65rem;
+      font-size: 0.78rem;
+      font-family: inherit;
+      color: #94a3b8;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: color 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+    .nav-link:hover  { color: #e2e8f0; background: rgba(255,255,255,0.07); }
+    .nav-link.active { color: #7dd3fc; background: rgba(125,211,252,0.12); font-weight: 600; }
+
+    /* ── Page header ─────────────────────────────── */
+    .page-header {
+      max-width: 960px;
+      margin: 0 auto 2rem;
+    }
+
+    .page-header h1 {
+      font-size: 1.6rem;
+      color: #1a1a2e;
+      margin-bottom: 0.4rem;
+    }
+
+    .page-header p {
+      font-size: 0.88rem;
+      color: #64748b;
+      line-height: 1.6;
+    }
+
+    /* ── Section cards ───────────────────────────── */
+    .sections-stack {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+
+    .section-card {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      overflow: hidden;
+    }
+
+    .section-header {
+      padding: 1.25rem 1.5rem 1rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .section-header h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 0.2rem;
+    }
+
+    .section-subtitle {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 0.3rem;
+    }
+
+    .section-desc {
+      font-size: 0.82rem;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .section-desc code {
+      background: #f1f5f9;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: "Consolas", monospace;
+      font-size: 0.78rem;
+      color: #334155;
+    }
+
+    .section-body {
+      padding: 1.5rem;
+    }
+
+    /* ════════════════════════════════════════════════
+       SECTION 1 — Same text, same class, diff types
+    ════════════════════════════════════════════════ */
+    .type-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .el-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* All 5 share this class — the ONLY discriminator is the tag */
+    .test-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 100px;
+      padding: 0.55rem 1rem;
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 7px;
+      font-family: inherit;
+      font-size: 0.92rem;
+      color: #1e293b;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .test-item:hover { background: #eff6ff; border-color: #3b82f6; }
+
+    /* select overrides */
+    select.test-item { cursor: pointer; }
+    input.test-item   { cursor: text; }
+
+    .el-tag {
+      font-family: "Consolas", monospace;
+      font-size: 0.72rem;
+      color: #94a3b8;
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* ════════════════════════════════════════════════
+       SECTION 2 — 10 identical elements
+    ════════════════════════════════════════════════ */
+    .repeat-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+    }
+
+    .repeat-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .pos-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #94a3b8;
+      font-family: "Consolas", monospace;
+    }
+
+    /* All 10 share this class — position is the only discriminator */
+    .repeat-item {
+      min-width: 90px;
+      padding: 0.5rem 1rem;
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 7px;
+      font-family: inherit;
+      font-size: 0.92rem;
+      color: #1e293b;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .repeat-item:hover { background: #eff6ff; border-color: #7c3aed; }
+    .repeat-item.active-flash {
+      background: #f5f3ff;
+      border-color: #7c3aed;
+    }
+
+    /* ════════════════════════════════════════════════
+       SECTION 3 — Deeply nested structure
+    ════════════════════════════════════════════════ */
+    .nest-outer {
+      font-size: 0.85rem;
+    }
+
+    /* All nest divs share this class — depth (ancestor count) is the discriminator */
+    .nest-item {
+      border-left: 3px solid;
+      padding: 0.6rem 0 0.6rem 1.1rem;
+      position: relative;
+    }
+
+    /* Colour gradient: shallow = blue, deep = pink */
+    .nest-item:nth-of-type(1) { border-color: #3b82f6; }
+
+    /* depth is encoded via nesting, not separate classes */
+    .nest-item                                                                   { border-color: #3b82f6; }
+    .nest-item .nest-item                                                        { border-color: #6366f1; }
+    .nest-item .nest-item .nest-item                                             { border-color: #7c3aed; }
+    .nest-item .nest-item .nest-item .nest-item                                  { border-color: #9333ea; }
+    .nest-item .nest-item .nest-item .nest-item .nest-item                       { border-color: #a855f7; }
+    .nest-item .nest-item .nest-item .nest-item .nest-item .nest-item            { border-color: #c026d3; }
+    .nest-item .nest-item .nest-item .nest-item .nest-item .nest-item .nest-item { border-color: #db2777; }
+
+    /* All labels share this class */
+    .nest-label {
+      display: inline-block;
+      padding: 0.25rem 0.65rem;
+      border-radius: 5px;
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      cursor: pointer;
+      color: #1e293b;
+      font-size: 0.85rem;
+      font-family: inherit;
+      margin-bottom: 0.5rem;
+      transition: background 0.15s, border-color 0.15s;
+      user-select: none;
+    }
+
+    .nest-label:hover { background: #eff6ff; border-color: #7c3aed; }
+    /* ════════════════════════════════════════════════
+       SECTION 4 — ARIA / semantic attribute deception
+    ════════════════════════════════════════════════ */
+    .aria-groups {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+    .aria-group { flex: 1; min-width: 200px; }
+    .aria-group-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      margin-bottom: 0.85rem;
+    }
+    .aria-row { display: flex; flex-direction: column; gap: 0.65rem; }
+    .aria-wrapper { display: flex; flex-direction: column; gap: 0.3rem; }
+
+    /* All 6 share this class — tag + attribute is the discriminator */
+    .aria-item {
+      display: block;
+      width: 100%;
+      padding: 0.55rem 1rem;
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 7px;
+      font-family: inherit;
+      font-size: 0.92rem;
+      color: #1e293b;
+      text-align: center;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .aria-item:hover { background: #fff7ed; border-color: #ea580c; }
+    .aria-attr-tag {
+      font-family: "Consolas", monospace;
+      font-size: 0.7rem;
+      color: #94a3b8;
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      align-self: flex-start;
+    }
+
+    /* ════════════════════════════════════════════════
+       SECTION 5 — Table navigation
+    ════════════════════════════════════════════════ */
+    .table-wrapper { overflow-x: auto; }
+    .cell-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    .cell-table thead th {
+      background: #1a1a2e;
+      color: #7dd3fc;
+      padding: 0.6rem 0.85rem;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+    }
+    .cell-table thead th:first-child { background: #0f1629; }
+    .row-header {
+      background: #1e293b;
+      color: #94a3b8;
+      padding: 0.5rem 0.85rem;
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    /* All data cells share this class — row + col position is the only discriminator */
+    .cell-item {
+      padding: 0.5rem 0.85rem;
+      text-align: center;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      color: #1e293b;
+      transition: background 0.12s;
+    }
+    .cell-item:hover { background: #eff6ff !important; }
+    .cell-item.active-flash { background: #dbeafe !important; }
+    .cell-table tbody tr:nth-child(odd)  .cell-item { background: #fff; }
+    .cell-table tbody tr:nth-child(even) .cell-item { background: #f8fafc; }
+    /* ── Output bar ──────────────────────────────── */
+    .output-wrapper {
+      max-width: 960px;
+      margin: 2rem auto 0;
+    }
+
+    .output-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #999;
+      margin-bottom: 0.4rem;
+    }
+
+    .output-bar {
+      background: #1a1a2e;
+      color: #7dd3fc;
+      border-radius: 8px;
+      padding: 0.85rem 1.25rem;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 0.95rem;
+      min-height: 3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .output-bar::before { content: "▶"; color: #4ade80; flex-shrink: 0; }
+  </style>
+  <script type="text/javascript" src="https://js-cdn.dynatrace.com/jstag/147f84b2bdc/bf44827rpq/4f4ae6f803553cd6_complete.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <nav class="site-nav">
+    <div class="site-nav-inner">
+      <span class="site-nav-logo">&#129514; Test Pages</span>
+      <div class="site-nav-links">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="shadow-dom-test.html" class="nav-link">Shadow DOM</a>
+        <a href="iframe-test.html" class="nav-link">Iframes</a>
+        <a href="dynamic-selector-test.html" class="nav-link">Dynamic Selectors</a>
+        <a href="date-picker-test.html" class="nav-link">Date Picker</a>
+        <a href="login-test.html" class="nav-link">Login</a>
+        <a href="trusted-events-test.html" class="nav-link">Trusted Events</a>
+        <a href="selector-reasoning-test.html" class="nav-link active">Selector Reasoning</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h1>Selector Reasoning Test</h1>
+    <p>Three sections that require AI to reason about element type, position, and DOM depth — not just text or class names.</p>
+  </div>
+
+  <div class="sections-stack">
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 1 — Same text · Same class · Diff types
+    ═══════════════════════════════════════════ -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Section 1 &mdash; Same Text, Same Class, Different Element Types</h2>
+        <p class="section-subtitle">innerText: "Test" &nbsp;·&nbsp; class: "test-item" &nbsp;·&nbsp; no IDs</p>
+        <p class="section-desc">
+          Five elements — <code>&lt;div&gt;</code>, <code>&lt;a&gt;</code>, <code>&lt;input&gt;</code>,
+          <code>&lt;button&gt;</code>, <code>&lt;select&gt;</code> — all share the same class and visible text.
+          The element tag name is the only discriminator.
+        </p>
+      </div>
+      <div class="section-body">
+        <div class="type-row">
+
+          <div class="el-wrapper">
+            <div class="test-item" id="s1-div">Test</div>
+            <span class="el-tag">&lt;div&gt;</span>
+          </div>
+
+          <div class="el-wrapper">
+            <a href="#" class="test-item" id="s1-a">Test</a>
+            <span class="el-tag">&lt;a&gt;</span>
+          </div>
+
+          <div class="el-wrapper">
+            <input type="text" class="test-item" id="s1-input" value="Test" />
+            <span class="el-tag">&lt;input&gt;</span>
+          </div>
+
+          <div class="el-wrapper">
+            <button class="test-item" id="s1-btn">Test</button>
+            <span class="el-tag">&lt;button&gt;</span>
+          </div>
+
+          <div class="el-wrapper">
+            <select class="test-item" id="s1-sel">
+              <option value="Test">Test</option>
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+            </select>
+            <span class="el-tag">&lt;select&gt;</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 2 — 10 identical elements
+    ═══════════════════════════════════════════ -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Section 2 &mdash; Repeated Identical Elements</h2>
+        <p class="section-subtitle">10 &times; <code>&lt;button class="repeat-item"&gt;Test&lt;/button&gt;</code> &nbsp;·&nbsp; no IDs &nbsp;·&nbsp; no distinguishing attributes</p>
+        <p class="section-desc">
+          All ten buttons are completely identical in markup. A positional selector is required:
+          <code>:nth-child(n)</code>, <code>:nth-of-type(n)</code>, or index-based equivalents.
+          Position numbers shown are for visual reference only — they are not part of the element.
+        </p>
+      </div>
+      <div class="section-body">
+        <div class="repeat-grid" id="repeat-grid"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         SECTION 3 — Nested structure
+    ═══════════════════════════════════════════ -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Section 3 &mdash; Deeply Nested Structure</h2>
+        <p class="section-subtitle">10 levels of <code>&lt;div class="nest-item"&gt;</code> &nbsp;·&nbsp; labels: <code>&lt;span class="nest-label"&gt;</code> &nbsp;·&nbsp; no IDs</p>
+        <p class="section-desc">
+          Each level of nesting contains a <code>span.nest-label</code>. The only way to target a specific label
+          is by counting ancestor <code>.nest-item</code> divs — e.g. <code>.nest-item .nest-item .nest-item &gt; .nest-label</code>
+          selects "Test 3".
+        </p>
+      </div>
+      <div class="section-body">
+        <div class="nest-outer" id="nest-root"></div>
+      </div>
+    </div>
+
+    <!-- ═════════════════════════════════════════════
+         SECTION 4 — ARIA / semantic attribute deception
+    ═════════════════════════════════════════════ -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Section 4 &mdash; ARIA &amp; Semantic Attribute Deception</h2>
+        <p class="section-subtitle">class: "aria-item" &nbsp;&middot;&nbsp; text: "Submit" &nbsp;&middot;&nbsp; same across all 6 elements</p>
+        <p class="section-desc">
+          Three <code>&lt;div&gt;</code>s and three <code>&lt;button&gt;</code>s — all with the same class and text.
+          Each carries a different semantic hook: <code>role="button"</code>, <code>aria-label</code>, or <code>id</code>.
+          Tag-type selectors alone can’t distinguish the three divs from each other, nor the three buttons from each other.
+        </p>
+      </div>
+      <div class="section-body">
+        <div class="aria-groups">
+
+          <div class="aria-group">
+            <div class="aria-group-label">&lt;div&gt; elements</div>
+            <div class="aria-row">
+              <div class="aria-wrapper">
+                <div role="button" class="aria-item">Submit</div>
+                <span class="aria-attr-tag">role="button"</span>
+              </div>
+              <div class="aria-wrapper">
+                <div aria-label="Submit" class="aria-item">Submit</div>
+                <span class="aria-attr-tag">aria-label="Submit"</span>
+              </div>
+              <div class="aria-wrapper">
+                <div id="Submit" class="aria-item">Submit</div>
+                <span class="aria-attr-tag">id="Submit"</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="aria-group">
+            <div class="aria-group-label">&lt;button&gt; elements</div>
+            <div class="aria-row">
+              <div class="aria-wrapper">
+                <button role="button" class="aria-item">Submit</button>
+                <span class="aria-attr-tag">role="button"</span>
+              </div>
+              <div class="aria-wrapper">
+                <button aria-label="Submit" class="aria-item">Submit</button>
+                <span class="aria-attr-tag">aria-label="Submit"</span>
+              </div>
+              <div class="aria-wrapper">
+                <button class="aria-item">Submit</button>
+                <span class="aria-attr-tag">(no special attrs)</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ═════════════════════════════════════════════
+         SECTION 5 — Table navigation
+    ═════════════════════════════════════════════ -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Section 5 &mdash; Table Navigation</h2>
+        <p class="section-subtitle">5 &times; 5 data grid &nbsp;&middot;&nbsp; class: "cell-item" &nbsp;&middot;&nbsp; text: "Cell" &nbsp;&middot;&nbsp; no IDs</p>
+        <p class="section-desc">
+          All 25 data cells are identical: same class, same text, no IDs.
+          Selecting a specific cell requires a positional approach such as
+          <code>tbody tr:nth-child(3) td:nth-of-type(3)</code> for Row 3, Col C.
+        </p>
+      </div>
+      <div class="section-body">
+        <div class="table-wrapper">
+          <table class="cell-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Col A</th>
+                <th>Col B</th>
+                <th>Col C</th>
+                <th>Col D</th>
+                <th>Col E</th>
+              </tr>
+            </thead>
+            <tbody id="cell-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="output-wrapper">
+    <div class="output-label">Last Interaction</div>
+    <div class="output-bar">
+      <span id="output-text">Waiting for interaction…</span>
+    </div>
+  </div>
+
+  <script>
+    function setOutput(msg) {
+      document.getElementById('output-text').textContent = msg;
+    }
+
+    /* ────────────────────────────────────────────────
+       SECTION 1 — element type listeners
+    ──────────────────────────────────────────────── */
+    document.getElementById('s1-div').addEventListener('click', function() {
+      setOutput('Section 1 — <div class="test-item"> clicked');
+    });
+
+    document.getElementById('s1-a').addEventListener('click', function(e) {
+      e.preventDefault();
+      setOutput('Section 1 — <a class="test-item"> clicked');
+    });
+
+    document.getElementById('s1-input').addEventListener('input', function(e) {
+      setOutput('Section 1 — <input class="test-item"> value: "' + e.target.value + '"');
+    });
+
+    document.getElementById('s1-btn').addEventListener('click', function() {
+      setOutput('Section 1 — <button class="test-item"> clicked');
+    });
+
+    document.getElementById('s1-sel').addEventListener('change', function(e) {
+      setOutput('Section 1 — <select class="test-item"> changed to: "' + e.target.value + '"');
+    });
+
+    /* ────────────────────────────────────────────────
+       SECTION 2 — build 10 identical buttons
+    ──────────────────────────────────────────────── */
+    var grid = document.getElementById('repeat-grid');
+
+    for (var i = 1; i <= 10; i++) {
+      var wrapper = document.createElement('div');
+      wrapper.className = 'repeat-wrapper';
+
+      var badge = document.createElement('span');
+      badge.className = 'pos-badge';
+      badge.textContent = '#' + i;
+
+      var btn = document.createElement('button');
+      btn.className = 'repeat-item';
+      btn.textContent = 'Test';
+
+      // Capture index in closure
+      (function(index, el) {
+        el.addEventListener('click', function() {
+          setOutput('Section 2 — button #' + index + ' of 10 clicked (1-indexed, left to right)');
+          el.classList.add('active-flash');
+          setTimeout(function() { el.classList.remove('active-flash'); }, 400);
+        });
+      })(i, btn);
+
+      wrapper.appendChild(badge);
+      wrapper.appendChild(btn);
+      grid.appendChild(wrapper);
+    }
+
+    /* ────────────────────────────────────────────────
+       SECTION 3 — build 10-level nested structure
+    ──────────────────────────────────────────────── */
+    var nestRoot = document.getElementById('nest-root');
+
+    // Build inside-out: deepest first, then wrap each level
+    // We'll build top-down and append children
+    var outermost = null;
+    var current   = null;
+
+    for (var d = 1; d <= 10; d++) {
+      var nestDiv = document.createElement('div');
+      nestDiv.className = 'nest-item';
+
+      var label = document.createElement('span');
+      label.className = 'nest-label';
+      label.textContent = 'Test ' + d;
+
+      // Depth captured in closure
+      (function(depth, lbl) {
+        lbl.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var depthSelector = new Array(depth).fill('.nest-item').join(' ') + ' > .nest-label';
+          setOutput('Section 3 — "Test ' + depth + '" clicked (depth ' + depth + ') — selector: ' + depthSelector);
+        });
+      })(d, label);
+
+      nestDiv.appendChild(label);
+
+      if (!outermost) {
+        outermost = nestDiv;
+        current   = nestDiv;
+      } else {
+        current.appendChild(nestDiv);
+        current = nestDiv;
+      }
+    }
+
+    nestRoot.appendChild(outermost);
+
+    /* ────────────────────────────────────────────────
+       SECTION 4 — ARIA element listeners
+    ──────────────────────────────────────────────── */
+    document.querySelectorAll('.aria-item').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        var tag       = el.tagName.toLowerCase();
+        var role      = el.getAttribute('role');
+        var ariaLabel = el.getAttribute('aria-label');
+        var elId      = el.getAttribute('id');
+
+        var attrs = [];
+        if (role)      attrs.push('role="'       + role      + '"');
+        if (ariaLabel) attrs.push('aria-label="' + ariaLabel + '"');
+        if (elId)      attrs.push('id="'         + elId      + '"');
+
+        var attrStr = attrs.length ? ' ' + attrs.join(' ') : '';
+        setOutput('Section 4 — <' + tag + attrStr + '> clicked');
+      });
+    });
+
+    /* ────────────────────────────────────────────────
+       SECTION 5 — Build table + wire cell clicks
+    ──────────────────────────────────────────────── */
+    var COL_LABELS = ['A','B','C','D','E'];
+    var tbody5     = document.getElementById('cell-tbody');
+
+    for (var r5 = 1; r5 <= 5; r5++) {
+      var tr5 = document.createElement('tr');
+
+      var th5 = document.createElement('th');
+      th5.className = 'row-header';
+      th5.textContent = 'Row ' + r5;
+      tr5.appendChild(th5);
+
+      for (var c5 = 0; c5 < 5; c5++) {
+        var td5 = document.createElement('td');
+        td5.className = 'cell-item';
+        td5.textContent = 'Cell';
+
+        (function(row, col, cell) {
+          cell.addEventListener('click', function() {
+            // nth-of-type counts only <td> elements, so col index is 1-based
+            var hint = 'tbody tr:nth-child(' + row + ') td:nth-of-type(' + (col + 1) + ')';
+            setOutput('Section 5 — Row ' + row + ', Col ' + COL_LABELS[col] + ' clicked — selector: ' + hint);
+            cell.classList.add('active-flash');
+            setTimeout(function() { cell.classList.remove('active-flash'); }, 400);
+          });
+        })(r5, c5, td5);
+
+        tr5.appendChild(td5);
+      }
+      tbody5.appendChild(tr5);
+    }
+  </script>
+
+</body>
+</html>
